@@ -1,0 +1,92 @@
+get_version
+  - return GIT version of the kepler FW
+  - arg (0) : none
+  - ret : version string
+
+get_serial_number
+  - return the serial number 07810000xx
+  - arg (0) : none
+  - ret : serial number (int)
+
+center_freq
+  - set/get center freq of LMX2572
+  - arg (0 / 1) : target_freq_hz (double)
+  - ret : actual_freq_hz (double)
+
+mode
+  - sets/gets repeater mode. 
+  - arg (0 / 2) : tuner_en (int), gainctrl_en (int)
+  - ret : same
+
+gain
+  - sets/gets repeater digital gain.
+  - arg (0 / 1) : gain_dB (float)
+  - ret : current repeater gain
+
+tdd_mode
+  - sets/gets TDD mode
+  - arg (0 / 2) : none -- reads current TDD mode
+          override=0, sel=x -- follows HW TDD pin direction
+          override=1, sel=0/1 -- SW overrides TDD direction to 0 (DL) or 1 (UL)
+  - ret : override (int), sel (int)
+
+pa_enable
+  - enables/disables pa_enable pin of RF connector
+  - arg (0 / 2) : dl_pa_en(int), ul_pa_en(int)
+  - ret : same
+
+lna_bypass
+  - enables/disables lna_bypass pin of RF connector
+  - arg (0 / 2) : dl_lna_byp(int), dl_lna_byp(int)
+  - ret : same
+
+dl_atten
+  - sets/gets DL attenuators in RF board. Sets all four at the same time.
+  - arg (0 / 4) : TX0(int), TX1(int), RX0(int), RX1(int)
+  - ret : same
+
+ul_atten
+  - sets/gets UL attenuators in RF board. Sets all four at the same time.
+  - arg (0 / 4) : TX0(int), TX1(int), RX0(int), RX1(int)
+  - ret : same
+
+read_powers
+  - fetches the sig power accumulator results from the registers, converting to dB
+  - arg : none
+  - ret (db floats): dac_pwr_t0_dl, dac_pwr_t1_dl, dac_pwr_t0_ul, dac_pwr_t1_ul,
+                     adc_pwr_r0_dl, adc_pwr_r1_dl, adc_pwr_r0_ul, adc_pwr_r1_ul,
+                     res_pwr_r0_dl, res_pwr_r1_dl, res_pwr_r0_ul, res_pwr_r1_ul
+
+measure_powers
+  - initiates sig power accum and fetches the results
+  - arg (0 / 3) : none - use the current tdd_mode / window / tdd_wait
+                    or - mode(int, 0DL 1UL 2ANY 3BOTH), window(int), tdd_wait(int)
+  - ret (db floats): dac_pwr_t0_dl, dac_pwr_t1_dl, dac_pwr_t0_ul, dac_pwr_t1_ul,
+                     adc_pwr_r0_dl, adc_pwr_r1_dl, adc_pwr_r0_ul, adc_pwr_r1_ul,
+                     res_pwr_r0_dl, res_pwr_r1_dl, res_pwr_r0_ul, res_pwr_r1_ul
+
+fpga_regs
+  - read or write FPGA registers. Internally adds BASE_ADDR
+  - arg (1 / 2) : addr (int), value_to_write (int, optional)
+  - ret : register_value
+
+get_temp
+  - get temperature of on-board temp sensor TMP112
+  - arg (0) : none
+  - ret : temp_c (single)
+
+get_last_log
+  - get the last log
+  - arg (0) : none
+  - ret : log (str)
+
+repeater_params
+   - sets/gets repeater params
+   - arg (0 / 8) : min_gain_db (float), max_gain_db (float), target_dacpwr_dbfs(float), max_dacpwr_dbfs(float), gain_step_db(float), agc_time_window_ms(int), pwr_accum_window(int,samples), ul_gaindiff_db(float)
+   - ret : same
+
+tuner_reset
+  - resets tuner to initial state, clears canx FIR filter
+  - arg (0) : none
+  - ret : none
+
