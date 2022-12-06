@@ -16,8 +16,8 @@ class Kepler():
     self.cli = KeplerRPC(port)
 
   def call(self, method, *args):
+    print("Kepler: call {} args {}".format(method, args))
     ret = self.cli.call(method, *args)
-    print("Kepler: call {} args {} ret {}".format(method, args, ret))
     return ret
 
   def load_pilot(self, waveform):
@@ -41,16 +41,16 @@ class Kepler():
     arr = np.frombuffer(data, dtype='float32')
     return arr
 
-  def canxfir_get(self, tdd):
-    data = self.cli.call('canxfir_get',tdd)
-    arr = np.frombuffer(data, dtype='float32')
-    return arr
-
   def canxfir_load(self, tdd, data):
     dd_b = data.tobytes()
     print('canxfir_load : tdd {} data len {} dd_b {} bytes'.format(tdd, len(data), len(dd_b)))
     ret = self.cli.call('canxfir_load',tdd,dd_b)
     return ret
+    
+  def canxfir_get(self, tdd):
+    data = self.cli.call('canxfir_get',tdd)
+    arr = np.frombuffer(data, dtype='float32')
+    return arr
     
   def program_mcu(self, binfile):
     self.cli.call_noreply('bootloader')
@@ -131,22 +131,6 @@ def kepler_dispatch(command):
     elif command.startswith('canxfir_get'):
         tdd = int(command.split(',')[-1])
         data = _kepler.canxfir_get(tdd)
-        return Response(msgpack.packb(data, use_bin_type=True), mimetype='application/x-msgpack')
-    elif command.startswith('tuner_get_channel'):
-        tdd = int(command.split(',')[-3])
-        num_avg = int(command.split(',')[-2])
-        data_sel = int(command.split(',')[-1])
-        rawdata = _kepler.cli.call('tuner_get_channel',tdd,num_avg,data_sel)
-        data = np.frombuffer(rawdata, dtype='float32')
-        return Response(msgpack.packb(data, use_bin_type=True), mimetype='application/x-msgpack')
-    elif command.startswith('dbg_tuner_read_channel'):
-        tdd = int(command.split(',')[-1])
-        rawdata = _kepler.cli.call('dbg_tuner_read_channel',tdd)
-        data = np.frombuffer(rawdata, dtype='float32')
-        return Response(msgpack.packb(data, use_bin_type=True), mimetype='application/x-msgpack')
-    elif command.startswith('tuner_read_chanbuf'):
-        rawdata = _kepler.cli.call('tuner_read_chanbuf')
-        data = np.frombuffer(rawdata, dtype='float32')
         return Response(msgpack.packb(data, use_bin_type=True), mimetype='application/x-msgpack')
     else:
         method = command.split(',')[0]

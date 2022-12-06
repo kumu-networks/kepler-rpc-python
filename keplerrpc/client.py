@@ -42,7 +42,7 @@ class KeplerRPC:
         if self._dev is not None:
             raise RuntimeError('Device has already been opened.')
         self._dev = Serial(port=self._devpath, baudrate=self._baudrate,
-                           timeout=0)
+                           timeout=0.01)
 
     def close(self):
         if self._dev is not None:
@@ -61,22 +61,32 @@ class KeplerRPC:
 
     def _find_frame(self):
         header = b'\x00\x00\x00\x00'
+        cnt = 0
         while True:
             word = self._dev.read(size=1)
             if not word:
+                time.sleep(0.01)
+                cnt += 1
+                if cnt > 10000:
+                    print("no response")
+                    return False
                 continue
             header = header[1:] + word
             if header == b'\x3a\x77\x49\xc8':
                 break
+        return True
 
     def call(self, method, *args):
+        self._dev.reset_input_buffer()
+        self._dev.reset_output_buffer()
         if not isinstance(method, str):
             raise TypeError('method: Expected str.')
         self._msg_id += 1
         request = [KeplerRPC.VERSION, self._msg_id, method, args]
         wdata = KeplerRPC.SOF + self._packer.pack(request)
         self._dev.write(wdata)
-        self._find_frame()
+        if self._find_frame() == False:
+            raise RPCError('No Response')
         msg_id, ret_code, value = self._receive()
         if ret_code:
             raise RPCError('Non-zero return code: {}'.format(ret_code))
