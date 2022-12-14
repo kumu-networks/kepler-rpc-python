@@ -30,7 +30,7 @@ with open(sys.argv[2], mode='rb') as f:
   imgdata = ll+imgbin
 
   print("erase_fpga_flash size {} bytes @ addr {}".format(len(imgdata), hex(loc)))
-  ret = cli.call('erase_fpga_flash',loc, len(imgdata))
+  ret = cli.call('erase_fpga_flash',loc, len(imgdata), timeout_ms=100000)
   print("erase_fpga_flash completed, calling write_fpga_flash")
 
   timenow = time.time()

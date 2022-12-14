@@ -59,16 +59,16 @@ class KeplerRPC:
             for response in self._unpacker:
                 return response
 
-    def _find_frame(self):
+    def _find_frame(self, timeout_ms):
         header = b'\x00\x00\x00\x00'
         cnt = 0
         while True:
             word = self._dev.read(size=1)
             if not word:
-                time.sleep(0.01)
+                time.sleep(0.001)
                 cnt += 1
-                if cnt > 10000:
-                    print("no response")
+                if cnt > timeout_ms:
+                    print("no response after {} sec".format(0.001*timeout_ms))
                     return False
                 continue
             header = header[1:] + word
@@ -76,7 +76,7 @@ class KeplerRPC:
                 break
         return True
 
-    def call(self, method, *args):
+    def call(self, method, *args, timeout_ms=5000):
         self._dev.reset_input_buffer()
         self._dev.reset_output_buffer()
         if not isinstance(method, str):
@@ -85,7 +85,7 @@ class KeplerRPC:
         request = [KeplerRPC.VERSION, self._msg_id, method, args]
         wdata = KeplerRPC.SOF + self._packer.pack(request)
         self._dev.write(wdata)
-        if self._find_frame() == False:
+        if self._find_frame(timeout_ms) == False:
             raise RPCError('No Response')
         msg_id, ret_code, value = self._receive()
         if ret_code:
