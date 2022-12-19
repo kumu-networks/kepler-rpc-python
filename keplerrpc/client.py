@@ -65,9 +65,9 @@ class KeplerRPC:
         while True:
             word = self._dev.read(size=1)
             if not word:
-                time.sleep(0.001)
+                time.sleep(0.01)
                 cnt += 1
-                if cnt > timeout_ms:
+                if cnt > timeout_ms/10:
                     print("no response after {} sec".format(0.001*timeout_ms))
                     return False
                 continue
@@ -76,7 +76,7 @@ class KeplerRPC:
                 break
         return True
 
-    def call(self, method, *args, timeout_ms=5000):
+    def call(self, method, *args, timeout_ms=3000):
         self._dev.reset_input_buffer()
         self._dev.reset_output_buffer()
         if not isinstance(method, str):
