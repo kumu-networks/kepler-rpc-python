@@ -1,5 +1,5 @@
 from serial import Serial
-from msgpack import Packer, Unpacker
+import msgpack
 import time
 
 class KeplerRPC:
@@ -10,7 +10,7 @@ class KeplerRPC:
         self._baudrate = baudrate
         self._dev = None
         self._msg_id = 0
-        self._packer = Packer(use_bin_type=True)
+        self._packer = msgpack.Packer(use_bin_type=True)
         """
         For backwards compatibility, try these kwargs in order, until one succeeds.
         * 'encoding' and 'unicode_errors' options are deprecated. There is new 'raw' option.
@@ -19,20 +19,6 @@ class KeplerRPC:
         * For backwards compatibility, set 'max_buffer_size' explicitly.
         * For backwards compatibility, set 'strict_map_key' to False explicitly, when possible.
         """
-        kwargs_list = (
-            {'strict_map_key': False, 'raw': False},
-            {'raw': False},
-            {'encoding': 'utf-8'},
-        )
-        for kwargs in kwargs_list:
-            try:
-                self._unpacker = Unpacker(
-                    use_list=True, max_buffer_size=2**31-1, **kwargs)
-            except TypeError as ex:
-                continue
-            break
-        else:
-            raise RuntimeError('Failed to create unpacker.')
         self.open()
 
     def __del__(self):
@@ -52,12 +38,20 @@ class KeplerRPC:
     SOF = b'\x3a\x77\x49\xc8'
     VERSION = 1
 
-    def _receive(self):
+    def _receive(self, timeout_ms):
+        cnt = 0
+        #time.sleep(0.01)
         while True:
             chunk = self._dev.read(size=1048576)
-            self._unpacker.feed(chunk)
-            for response in self._unpacker:
-                return response
+            if not chunk:
+                time.sleep(0.01)
+                cnt += 1
+                if cnt > timeout_ms/10:
+                    raise RPCError('No Response')
+                continue
+            response = msgpack.unpackb(chunk, use_list=True, strict_map_key=False, raw=False)
+            return response
+
 
     def _find_frame(self, timeout_ms):
         header = b'\x00\x00\x00\x00'
@@ -87,7 +81,7 @@ class KeplerRPC:
         self._dev.write(wdata)
         if self._find_frame(timeout_ms) == False:
             raise RPCError('No Response')
-        msg_id, ret_code, value = self._receive()
+        msg_id, ret_code, value = self._receive(timeout_ms)
         if ret_code:
             raise RPCError('Non-zero return code: {}'.format(ret_code))
         elif self._msg_id != msg_id:
