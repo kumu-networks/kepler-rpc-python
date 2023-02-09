@@ -41,16 +41,19 @@ class KeplerRPC:
     def _receive(self, timeout_ms):
         cnt = 0
         #time.sleep(0.01)
+        data = b''
         while True:
             chunk = self._dev.read(size=1048576)
-            if not chunk:
-                time.sleep(0.01)
-                cnt += 1
-                if cnt > timeout_ms/10:
-                    raise RPCError('No Response')
-                continue
-            response = msgpack.unpackb(chunk, use_list=True, strict_map_key=False, raw=False)
-            return response
+            data += chunk
+            try:
+                response = msgpack.unpackb(data, use_list=True, strict_map_key=False, raw=False)
+                return response
+            except:
+                pass
+            time.sleep(0.01)
+            cnt += 1
+            if cnt > timeout_ms/10:
+                raise RPCError('No Response')
 
 
     def _find_frame(self, timeout_ms):
