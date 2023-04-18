@@ -3,6 +3,8 @@ from flask import Flask, render_template, request, Response, jsonify
 from waitress import serve
 import msgpack
 import msgpack_numpy
+import shlex
+
 msgpack_numpy.patch()
 
 
@@ -133,9 +135,13 @@ def kepler_dispatch(command):
         data = _kepler.canxfir_get(tdd)
         return Response(msgpack.packb(data, use_bin_type=True), mimetype='application/x-msgpack')
     else:
-        method = command.split(',')[0]
-        arglist = command.split(',')[1:]
-        args = [float(k) if '.' in k else int(k) for k in arglist]
+        aa = shlex.shlex(command)
+        aa.whitespace += ','
+        aa.whitespace_split = True
+        cmd_list = list(aa)
+        method = cmd_list[0]
+        arglist = cmd_list[1:]
+        args = [k[1:-1] if '"' in k else (float(k) if '.' in k else int(k)) for k in arglist]
         ret = _kepler.call(method, *args)
         return Response(str(ret), mimetype='text/html')
 
