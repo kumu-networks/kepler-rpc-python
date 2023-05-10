@@ -82,7 +82,7 @@ freqstep = data[1][header.index('cent_freq')] - data[0][header.index('cent_freq'
 box_hwver = 2
 boxcal_format = 2
 
-flashdata_box = struct.pack('<iBBBHffddd', 0x554d554b, boxcal_format, box_hwver, variantm, serialm, common['ref_dl_atten_db'], common['ref_ul_atten_db'], startfreq, stopfreq, freqstep)
+flashdata_box = struct.pack('<iBBBBffddd', 0x554d554b, boxcal_format, box_hwver, variantm, serialm, common['ref_dl_atten_db'], common['ref_ul_atten_db'], startfreq, stopfreq, freqstep)
 
 for dd in data:
     dd = [float(x) for x in dd]

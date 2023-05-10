@@ -56,14 +56,9 @@ read_powers
   - ret (db floats): dac_pwr_t0_dl, dac_pwr_t1_dl, dac_pwr_t0_ul, dac_pwr_t1_ul,
                      adc_pwr_r0_dl, adc_pwr_r1_dl, adc_pwr_r0_ul, adc_pwr_r1_ul,
                      res_pwr_r0_dl, res_pwr_r1_dl, res_pwr_r0_ul, res_pwr_r1_ul
-
-measure_powers
-  - initiates sig power accum and fetches the results
-  - arg (0 / 3) : none - use the current tdd_mode / window / tdd_wait
-                    or - mode(int, 0DL 1UL 2ANY 3BOTH), window(int), tdd_wait(int)
-  - ret (db floats): dac_pwr_t0_dl, dac_pwr_t1_dl, dac_pwr_t0_ul, dac_pwr_t1_ul,
-                     adc_pwr_r0_dl, adc_pwr_r1_dl, adc_pwr_r0_ul, adc_pwr_r1_ul,
-                     res_pwr_r0_dl, res_pwr_r1_dl, res_pwr_r0_ul, res_pwr_r1_ul
+                     dac_pwr_r0_dl_max, dac_pwr_r1_dl_max, dac_pwr_r0_ul_max, dac_pwr_r1_ul_max,
+                     adc_pwr_r0_dl_max, adc_pwr_r1_dl_max, adc_pwr_r0_ul_max, adc_pwr_r1_ul_max,
+                     res_pwr_r0_dl_max, res_pwr_r1_dl_max, res_pwr_r0_ul_max, res_pwr_r1_ul_max
 
 fpga_regs
   - read or write FPGA registers. Internally adds BASE_ADDR
@@ -82,7 +77,7 @@ get_last_log
 
 repeater_params
    - sets/gets repeater params
-   - arg (0 / 8) : min_gain_db (float), max_gain_db (float), target_dacpwr_dbfs(float), max_dacpwr_dbfs(float), gain_step_db(float), agc_time_window_ms(int), pwr_accum_window(int,samples), ul_gaindiff_db(float)
+   - arg (0 / 2) : max_gain_db (float), ul_gaindiff_db(float)
    - ret : same
 
 tuner_reset
@@ -90,3 +85,43 @@ tuner_reset
   - arg (0) : none
   - ret : none
 
+bypass_chan_fir
+   - bypasses / enables channel filter
+   - arg (0 / 1) : 1 - bypass, 0 - enable
+   - ret : same
+
+chan_fir_bank_sel
+   - selects BW of the channel filter
+   - arg (0 / 1) : 0 - 5MHz, 1 - 10MHz, 2 - 15MHz, 3 - 20MHz, 4 - 25MHz, 5 - 30MHz, 6 - 40MHz, 7 - 50MHz, 8 - 60MHz, 9 - 70MHz, 10 - 80MHz, 11 - 90MHz, 12 - 100MHz, 13 - 200MHz
+   - ret : same
+
+dac_fr_accum_reset
+   - resets HW backoff mechanism for PA protection, which is engaged when DAC is saturated
+   - arg : none
+   - ret : none
+
+secs_alive
+   - time since boot up in seconds
+   - arg : none
+   - ret : seconds
+
+*** TDD sync related
+
+tdd_frame_table_set
+  - programs TDD schedule
+  - arg (7) : TS1_DL, TS1_UL, TS2_DL, TS2_UL, SSFSYM_DL, SSFSYM_GP, SSFSYM_UL
+  - arg (8) : same as above, last arg is blanking_string eg 40:51,70:73 when TDD blanking is used
+  - ret : same as arg (8)
+
+tdd_sync_start_search
+  - searches for TDD sync on GSCN frequencies within freq range
+  - arg (2) : threshold (should be 6), min_thresh (should be 1)
+              search whole range (-122MHz, +122MHz). Should be 6, 1
+  - arg (3) : 6, 1, freq -- search for specific frequency
+  - arg (4) : 6, 1, freq_start, freq_stop -- search for specified freq range
+  - ret : none
+
+tdd_sync_start_search_earfcn
+  - searches for TDD sync on speific ARFCN
+  - arg (3) : threshold (should be 6), min_thresh (should be 1), arfcn (int)
+  - ret : none
